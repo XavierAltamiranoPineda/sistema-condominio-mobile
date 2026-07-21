@@ -1,23 +1,22 @@
-import 'package:json_annotation/json_annotation.dart';
+class ReporteGeneral {
+  final String estado;
+  final String mensaje;
+  final List<Map<String, dynamic>> novedades;
 
-part 'dashboard_stats.g.dart';
-
-@JsonSerializable()
-class DashboardStats {
-  final int totalResidentes;
-  final int totalResidencias;
-  final int pagosPendientes;
-  final double recaudacion;
-  final int comunicadosActivos;
-
-  DashboardStats({
-    required this.totalResidentes,
-    required this.totalResidencias,
-    required this.pagosPendientes,
-    required this.recaudacion,
-    required this.comunicadosActivos,
+  ReporteGeneral({
+    required this.estado,
+    this.mensaje = '',
+    this.novedades = const [],
   });
 
-  factory DashboardStats.fromJson(Map<String, dynamic> json) => _$DashboardStatsFromJson(json);
-  Map<String, dynamic> toJson() => _$DashboardStatsToJson(this);
+  factory ReporteGeneral.fromJson(Map<String, dynamic> json) {
+    return ReporteGeneral(
+      estado: json['estado']?.toString() ?? 'OK',
+      mensaje: json['mensaje']?.toString() ?? '',
+      novedades: (json['novedades'] as List<dynamic>?)
+              ?.map((e) => e as Map<String, dynamic>)
+              .toList() ??
+          [],
+    );
+  }
 }

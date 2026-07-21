@@ -8,8 +8,8 @@ class DashboardRepositoryImpl implements DashboardRepository {
   DashboardRepositoryImpl(this._dio);
 
   @override
-  Future<DashboardStats> getStats() async {
-    final response = await _dio.get('/api/reportes/dashboard');
-    return DashboardStats.fromJson(response.data);
+  Future<ReporteGeneral> getStats() async {
+    final response = await _dio.get('/api/reportes/general');
+    return ReporteGeneral.fromJson(response.data);
   }
 }

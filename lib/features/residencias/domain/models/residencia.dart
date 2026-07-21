@@ -1,9 +1,5 @@
-import 'package:json_annotation/json_annotation.dart';
 import '../../../residentes/domain/models/residente.dart';
 
-part 'residencia.g.dart';
-
-@JsonSerializable()
 class Residencia {
   final int id;
   final String codigo;
@@ -17,6 +13,24 @@ class Residencia {
     this.residentes = const [],
   });
 
-  factory Residencia.fromJson(Map<String, dynamic> json) => _$ResidenciaFromJson(json);
-  Map<String, dynamic> toJson() => _$ResidenciaToJson(this);
+  factory Residencia.fromJson(Map<String, dynamic> json) {
+    return Residencia(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      codigo: json['codigo']?.toString() ?? '',
+      estado: json['estado']?.toString() ?? 'DESOCUPADA',
+      residentes: (json['residentes'] as List<dynamic>?)
+              ?.map((e) => Residente.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'codigo': codigo,
+      'estado': estado,
+      'residentes': residentes.map((r) => r.toJson()).toList(),
+    };
+  }
 }

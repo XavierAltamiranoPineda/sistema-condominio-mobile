@@ -1,8 +1,3 @@
-import 'package:json_annotation/json_annotation.dart';
-
-part 'comunicado.g.dart';
-
-@JsonSerializable()
 class Comunicado {
   final int id;
   final String titulo;
@@ -22,6 +17,27 @@ class Comunicado {
     this.leido = false,
   });
 
-  factory Comunicado.fromJson(Map<String, dynamic> json) => _$ComunicadoFromJson(json);
-  Map<String, dynamic> toJson() => _$ComunicadoToJson(this);
+  factory Comunicado.fromJson(Map<String, dynamic> json) {
+    return Comunicado(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      titulo: json['titulo']?.toString() ?? '',
+      mensaje: json['mensaje']?.toString() ?? '',
+      prioridad: json['prioridad']?.toString() ?? 'NORMAL',
+      fecha: json['fecha']?.toString() ?? '',
+      estado: json['estado']?.toString() ?? 'ACTIVO',
+      leido: json['leido'] == true,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'titulo': titulo,
+      'mensaje': mensaje,
+      'prioridad': prioridad,
+      'fecha': fecha,
+      'estado': estado,
+      'leido': leido,
+    };
+  }
 }

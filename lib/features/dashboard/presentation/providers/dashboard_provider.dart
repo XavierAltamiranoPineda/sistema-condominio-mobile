@@ -10,12 +10,12 @@ final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {
   return DashboardRepositoryImpl(dio);
 });
 
-class DashboardStatsNotifier extends AsyncNotifier<DashboardStats> {
+class DashboardStatsNotifier extends AsyncNotifier<ReporteGeneral> {
   late final DashboardRepository _repository;
   Timer? _syncTimer;
 
   @override
-  Future<DashboardStats> build() async {
+  Future<ReporteGeneral> build() async {
     _repository = ref.watch(dashboardRepositoryProvider);
     _startSyncTimer();
     return await _repository.getStats();
@@ -31,13 +31,12 @@ class DashboardStatsNotifier extends AsyncNotifier<DashboardStats> {
   Future<void> fetchStats() async {
     final newState = await AsyncValue.guard(() => _repository.getStats());
     if (newState.hasError && state.hasValue) {
-      // Keep existing value if error during sync
       return;
     }
     state = newState;
   }
 }
 
-final dashboardStatsProvider = AsyncNotifierProvider<DashboardStatsNotifier, DashboardStats>(() {
+final dashboardStatsProvider = AsyncNotifierProvider<DashboardStatsNotifier, ReporteGeneral>(() {
   return DashboardStatsNotifier();
 });
