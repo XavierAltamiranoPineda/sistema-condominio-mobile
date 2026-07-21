@@ -1,0 +1,7 @@
+import '../models/auth_response.dart';
+
+abstract class AuthRepository {
+  Future<AuthResponse> login(String username, String password);
+  Future<void> logout();
+  Future<bool> isAuthenticated();
+}
