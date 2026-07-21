@@ -1,36 +1,43 @@
-import '../../../residentes/domain/models/residente.dart';
-
 class Residencia {
-  final int id;
-  final String codigo;
+  final int idResidencia;
+  final String codigoCasa;
+  final int idPropietario;
+  final String nombrePropietario;
+  final double cuotaMensual;
   final String estado;
-  final List<Residente> residentes;
+  final String createdAt;
 
   Residencia({
-    required this.id,
-    required this.codigo,
+    required this.idResidencia,
+    required this.codigoCasa,
+    required this.idPropietario,
+    required this.nombrePropietario,
+    required this.cuotaMensual,
     required this.estado,
-    this.residentes = const [],
+    required this.createdAt,
   });
 
   factory Residencia.fromJson(Map<String, dynamic> json) {
     return Residencia(
-      id: (json['id'] as num?)?.toInt() ?? 0,
-      codigo: json['codigo']?.toString() ?? '',
+      idResidencia: (json['idResidencia'] as num?)?.toInt() ?? 0,
+      codigoCasa: json['codigoCasa']?.toString() ?? '',
+      idPropietario: (json['idPropietario'] as num?)?.toInt() ?? 0,
+      nombrePropietario: json['nombrePropietario']?.toString() ?? '',
+      cuotaMensual: (json['cuotaMensual'] as num?)?.toDouble() ?? 0.0,
       estado: json['estado']?.toString() ?? 'DESOCUPADA',
-      residentes: (json['residentes'] as List<dynamic>?)
-              ?.map((e) => Residente.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
+      createdAt: json['createdAt']?.toString() ?? '',
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'codigo': codigo,
+      'idResidencia': idResidencia,
+      'codigoCasa': codigoCasa,
+      'idPropietario': idPropietario,
+      'nombrePropietario': nombrePropietario,
+      'cuotaMensual': cuotaMensual,
       'estado': estado,
-      'residentes': residentes.map((r) => r.toJson()).toList(),
+      'createdAt': createdAt,
     };
   }
 }

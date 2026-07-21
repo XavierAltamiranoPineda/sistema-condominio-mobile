@@ -1,43 +1,45 @@
 class Comunicado {
-  final int id;
+  final int idComunicado;
   final String titulo;
   final String mensaje;
   final String prioridad;
-  final String fecha;
-  final String estado;
-  final bool leido;
+  final String? fechaVencimiento;
+  final String createdAt;
+  final List<int>? destinatarios;
 
   Comunicado({
-    required this.id,
+    required this.idComunicado,
     required this.titulo,
     required this.mensaje,
     required this.prioridad,
-    required this.fecha,
-    required this.estado,
-    this.leido = false,
+    this.fechaVencimiento,
+    required this.createdAt,
+    this.destinatarios,
   });
 
   factory Comunicado.fromJson(Map<String, dynamic> json) {
     return Comunicado(
-      id: (json['id'] as num?)?.toInt() ?? 0,
+      idComunicado: (json['idComunicado'] as num?)?.toInt() ?? 0,
       titulo: json['titulo']?.toString() ?? '',
       mensaje: json['mensaje']?.toString() ?? '',
       prioridad: json['prioridad']?.toString() ?? 'NORMAL',
-      fecha: json['fecha']?.toString() ?? '',
-      estado: json['estado']?.toString() ?? 'ACTIVO',
-      leido: json['leido'] == true,
+      fechaVencimiento: json['fechaVencimiento']?.toString(),
+      createdAt: json['createdAt']?.toString() ?? '',
+      destinatarios: json['destinatarios'] != null 
+          ? List<int>.from(json['destinatarios'] as List)
+          : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      'idComunicado': idComunicado,
       'titulo': titulo,
       'mensaje': mensaje,
       'prioridad': prioridad,
-      'fecha': fecha,
-      'estado': estado,
-      'leido': leido,
+      if (fechaVencimiento != null) 'fechaVencimiento': fechaVencimiento,
+      'createdAt': createdAt,
+      if (destinatarios != null) 'destinatarios': destinatarios,
     };
   }
 }

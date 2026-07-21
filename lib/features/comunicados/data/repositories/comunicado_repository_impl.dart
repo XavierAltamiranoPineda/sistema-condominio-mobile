@@ -14,7 +14,30 @@ class ComunicadoRepositoryImpl implements ComunicadoRepository {
   }
 
   @override
-  Future<void> marcarLeido(int id) async {
-    await _dio.patch('/api/comunicados/$id/leido');
+  Future<Comunicado> createComunicado(Comunicado comunicado) async {
+    final Map<String, dynamic> requestData = {
+      'titulo': comunicado.titulo,
+      'mensaje': comunicado.mensaje,
+      'prioridad': comunicado.prioridad,
+      if (comunicado.fechaVencimiento != null) 'fechaVencimiento': comunicado.fechaVencimiento,
+      if (comunicado.destinatarios != null && comunicado.destinatarios!.isNotEmpty)
+        'destinatarios': comunicado.destinatarios,
+    };
+    final response = await _dio.post('/api/comunicados', data: requestData);
+    return Comunicado.fromJson(response.data);
+  }
+
+  @override
+  Future<Comunicado> updateComunicado(int id, Comunicado comunicado) async {
+    final Map<String, dynamic> requestData = {
+      'titulo': comunicado.titulo,
+      'mensaje': comunicado.mensaje,
+      'prioridad': comunicado.prioridad,
+      if (comunicado.fechaVencimiento != null) 'fechaVencimiento': comunicado.fechaVencimiento,
+      if (comunicado.destinatarios != null && comunicado.destinatarios!.isNotEmpty)
+        'destinatarios': comunicado.destinatarios,
+    };
+    final response = await _dio.put('/api/comunicados/$id', data: requestData);
+    return Comunicado.fromJson(response.data);
   }
 }

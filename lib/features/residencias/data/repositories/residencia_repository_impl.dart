@@ -15,19 +15,34 @@ class ResidenciaRepositoryImpl implements ResidenciaRepository {
 
   @override
   Future<Residencia> createResidencia(Residencia residencia) async {
-    final response = await _dio.post('/api/residencias', data: residencia.toJson());
+    final Map<String, dynamic> requestData = {
+      'codigoCasa': residencia.codigoCasa,
+      'idPropietario': residencia.idPropietario,
+      'cuotaMensual': residencia.cuotaMensual,
+    };
+    final response = await _dio.post('/api/residencias', data: requestData);
     return Residencia.fromJson(response.data);
   }
 
   @override
   Future<Residencia> updateResidencia(int id, Residencia residencia) async {
-    final response = await _dio.put('/api/residencias/$id', data: residencia.toJson());
+    final Map<String, dynamic> requestData = {
+      'codigoCasa': residencia.codigoCasa,
+      'idPropietario': residencia.idPropietario,
+      'cuotaMensual': residencia.cuotaMensual,
+      'estado': residencia.estado,
+    };
+    final response = await _dio.put('/api/residencias/$id', data: requestData);
     return Residencia.fromJson(response.data);
   }
 
   @override
   Future<void> changeState(int id, String estado) async {
-    await _dio.patch('/api/residencias/$id/estado', queryParameters: {'estado': estado});
+    // Desktop uses PUT with full body. Let's fetch and update.
+    final resp = await _dio.get('/api/residencias/$id');
+    final currentData = resp.data as Map<String, dynamic>;
+    currentData['estado'] = estado;
+    await _dio.put('/api/residencias/$id', data: currentData);
   }
 
   @override

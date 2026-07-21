@@ -1,47 +1,47 @@
-class Pago {
-  final int idPago;
+class Cuota {
   final int idCuota;
+  final int idResidencia;
   final String codigoCasa;
   final int mes;
   final int anio;
-  final String fechaPago;
+  final double valor;
   final double montoPagado;
-  final String estado;
+  final double saldoPendiente;
 
-  Pago({
-    required this.idPago,
+  Cuota({
     required this.idCuota,
+    required this.idResidencia,
     required this.codigoCasa,
     required this.mes,
     required this.anio,
-    required this.fechaPago,
+    required this.valor,
     required this.montoPagado,
-    required this.estado,
+    required this.saldoPendiente,
   });
 
-  factory Pago.fromJson(Map<String, dynamic> json) {
-    return Pago(
-      idPago: (json['idPago'] as num?)?.toInt() ?? 0,
+  factory Cuota.fromJson(Map<String, dynamic> json) {
+    return Cuota(
       idCuota: (json['idCuota'] as num?)?.toInt() ?? 0,
+      idResidencia: (json['idResidencia'] as num?)?.toInt() ?? 0,
       codigoCasa: json['codigoCasa']?.toString() ?? '',
       mes: (json['mes'] as num?)?.toInt() ?? 0,
       anio: (json['anio'] as num?)?.toInt() ?? 0,
-      fechaPago: json['fechaPago']?.toString() ?? '',
+      valor: (json['valor'] as num?)?.toDouble() ?? 0.0,
       montoPagado: (json['montoPagado'] as num?)?.toDouble() ?? 0.0,
-      estado: json['estado']?.toString() ?? 'PENDIENTE',
+      saldoPendiente: (json['saldoPendiente'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'idPago': idPago,
       'idCuota': idCuota,
+      'idResidencia': idResidencia,
       'codigoCasa': codigoCasa,
       'mes': mes,
       'anio': anio,
-      'fechaPago': fechaPago,
+      'valor': valor,
       'montoPagado': montoPagado,
-      'estado': estado,
+      'saldoPendiente': saldoPendiente,
     };
   }
 }

@@ -34,8 +34,13 @@ class ComunicadosNotifier extends AsyncNotifier<List<Comunicado>> {
     state = newState;
   }
 
-  Future<void> marcarLeido(int id) async {
-    await _repository.marcarLeido(id);
+  Future<void> addComunicado(Comunicado comunicado) async {
+    await _repository.createComunicado(comunicado);
+    fetchComunicados();
+  }
+
+  Future<void> editComunicado(int id, Comunicado comunicado) async {
+    await _repository.updateComunicado(id, comunicado);
     fetchComunicados();
   }
 }

@@ -1,35 +1,43 @@
 class Residente {
-  final int id;
-  final String nombre;
-  final String apellido;
+  final int idResidente;
+  final String nombres;
+  final String apellidos;
   final String cedula;
+  final String telefono;
   final String estado;
+  final String createdAt;
 
   Residente({
-    required this.id,
-    required this.nombre,
-    required this.apellido,
+    required this.idResidente,
+    required this.nombres,
+    required this.apellidos,
     required this.cedula,
+    required this.telefono,
     required this.estado,
+    required this.createdAt,
   });
 
   factory Residente.fromJson(Map<String, dynamic> json) {
     return Residente(
-      id: (json['id'] as num?)?.toInt() ?? 0,
-      nombre: json['nombre']?.toString() ?? '',
-      apellido: json['apellido']?.toString() ?? '',
+      idResidente: (json['idResidente'] as num?)?.toInt() ?? 0,
+      nombres: json['nombres']?.toString() ?? '',
+      apellidos: json['apellidos']?.toString() ?? '',
       cedula: json['cedula']?.toString() ?? '',
-      estado: json['estado']?.toString() ?? 'INACTIVO',
+      telefono: json['telefono']?.toString() ?? '',
+      estado: json['estado']?.toString().toUpperCase() ?? 'INACTIVO',
+      createdAt: json['createdAt']?.toString() ?? '',
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'nombre': nombre,
-      'apellido': apellido,
+      'idResidente': idResidente,
+      'nombres': nombres,
+      'apellidos': apellidos,
       'cedula': cedula,
+      'telefono': telefono,
       'estado': estado,
+      'createdAt': createdAt,
     };
   }
 }

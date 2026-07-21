@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../domain/models/pago.dart';
+import '../../domain/models/cuota.dart';
 import '../../domain/repositories/pago_repository.dart';
 
 class PagoRepositoryImpl implements PagoRepository {
@@ -15,7 +16,11 @@ class PagoRepositoryImpl implements PagoRepository {
 
   @override
   Future<Pago> registrarPago(Pago pago) async {
-    final response = await _dio.post('/api/pagos', data: pago.toJson());
+    final Map<String, dynamic> requestData = {
+      'idCuota': pago.idCuota,
+      'montoPagado': pago.montoPagado,
+    };
+    final response = await _dio.post('/api/pagos', data: requestData);
     return Pago.fromJson(response.data);
   }
 
@@ -23,5 +28,23 @@ class PagoRepositoryImpl implements PagoRepository {
   Future<double> consultarDeuda(int residenteId) async {
     final response = await _dio.get('/api/pagos/deuda/$residenteId');
     return double.parse(response.data.toString());
+  }
+
+  @override
+  Future<List<Cuota>> getCuotas() async {
+    final response = await _dio.get('/api/cuotas');
+    return (response.data as List).map((e) => Cuota.fromJson(e)).toList();
+  }
+
+  @override
+  Future<Cuota> generarCuota(Cuota cuota) async {
+    final Map<String, dynamic> requestData = {
+      'idResidencia': cuota.idResidencia,
+      'mes': cuota.mes,
+      'anio': cuota.anio,
+      'valor': cuota.valor,
+    };
+    final response = await _dio.post('/api/cuotas', data: requestData);
+    return Cuota.fromJson(response.data);
   }
 }

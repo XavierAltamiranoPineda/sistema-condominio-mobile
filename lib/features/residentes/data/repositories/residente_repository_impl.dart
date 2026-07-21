@@ -15,19 +15,41 @@ class ResidenteRepositoryImpl implements ResidenteRepository {
 
   @override
   Future<Residente> createResidente(Residente residente) async {
-    final response = await _dio.post('/api/residentes', data: residente.toJson());
+    final Map<String, dynamic> requestData = {
+      'nombres': residente.nombres,
+      'apellidos': residente.apellidos,
+      'cedula': residente.cedula,
+      'telefono': residente.telefono,
+    };
+    final response = await _dio.post('/api/residentes', data: requestData);
     return Residente.fromJson(response.data);
   }
 
   @override
   Future<Residente> updateResidente(int id, Residente residente) async {
-    final response = await _dio.put('/api/residentes/$id', data: residente.toJson());
+    final Map<String, dynamic> requestData = {
+      'nombres': residente.nombres,
+      'apellidos': residente.apellidos,
+      'cedula': residente.cedula,
+      'telefono': residente.telefono,
+      'estado': residente.estado,
+    };
+    final response = await _dio.put('/api/residentes/$id', data: requestData);
     return Residente.fromJson(response.data);
   }
 
   @override
   Future<void> changeState(int id, String estado) async {
-    // Some backend APIs use PATCH for states. If it fails, error interceptor will throw.
-    await _dio.patch('/api/residentes/$id/estado', queryParameters: {'estado': estado});
+    if (estado == 'INACTIVO') {
+      await _dio.delete('/api/residentes/$id');
+    } else {
+      // Activar requires sending the data via PUT.
+      // Since our interface only passes id and estado, we must fetch it first or change the interface.
+      // Fetch the current record:
+      final resp = await _dio.get('/api/residentes/$id');
+      final currentData = resp.data as Map<String, dynamic>;
+      currentData['estado'] = 'ACTIVO';
+      await _dio.put('/api/residentes/$id', data: currentData);
+    }
   }
 }

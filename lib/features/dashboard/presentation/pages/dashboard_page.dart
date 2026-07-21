@@ -48,17 +48,13 @@ class DashboardPage extends ConsumerWidget {
     final residenciasOcupadas = residencias.where((r) => r.estado == 'OCUPADA').length;
     final residenciasDesocupadas = residencias.where((r) => r.estado == 'DESOCUPADA').length;
     
-    // As per frontend calculation:
-    // Pagos Pendientes might be different but let's count pagos with some pending status or use a general logic. 
-    // Wait, the API model for Pago returns `monto`. If desktop says 'cuotas' and 'pagosPendientes = cuotas.filter(c => c.saldoPendiente > 0).length', but we only have `Pago` model here. 
-    // Let's adapt it to our `Pago` model. Wait, `Pago` has `estado`. So we count where `estado` is NOT 'APROBADO' maybe?
     final pagosPendientes = pagos.where((p) => p.estado != 'APROBADO').length;
     
     // Recaudación Mensual: sum of all 'APROBADO' payments.
-    final recaudacion = pagos.where((p) => p.estado == 'APROBADO').fold<double>(0.0, (sum, p) => sum + p.monto);
+    final recaudacion = pagos.where((p) => p.estado == 'APROBADO').fold<double>(0.0, (sum, p) => sum + p.montoPagado);
 
-    // Comunicados Activos: where estado != 'VENCIDO'
-    final comunicadosActivos = comunicados.where((c) => c.estado.toUpperCase() != 'VENCIDO').length;
+    // Comunicados Activos: just length since we don't have estado
+    final comunicadosActivos = comunicados.length;
 
     final isEstadoOk = reporte?.estado == 'OK';
 

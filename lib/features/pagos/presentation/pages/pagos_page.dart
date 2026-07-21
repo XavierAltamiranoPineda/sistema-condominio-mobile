@@ -1,120 +1,163 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/pago_provider.dart';
-import '../../domain/models/pago.dart';
+import '../../domain/models/cuota.dart';
+import '../../../residencias/presentation/providers/residencia_provider.dart';
 import '../../../../core/presentation/widgets/app_drawer.dart';
 
 class PagosPage extends ConsumerWidget {
   const PagosPage({super.key});
 
-  void _showForm(BuildContext context, WidgetRef ref) {
-    final _formKey = GlobalKey<FormState>();
-    final _montoCtrl = TextEditingController();
-    
+  void _showCuotaForm(BuildContext context, WidgetRef ref) {
+    final formKey = GlobalKey<FormState>();
+    final valorCtrl = TextEditingController();
+    int? selectedResidenciaId;
+    int selectedMes = DateTime.now().month;
+    int selectedAnio = DateTime.now().year < 2025 ? 2025 : (DateTime.now().year > 2026 ? 2026 : DateTime.now().year);
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Registrar Pago'),
-        content: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _montoCtrl,
-                decoration: const InputDecoration(labelText: 'Monto (\$)'),
-                keyboardType: TextInputType.number,
-                validator: (v) => v!.isEmpty ? 'Requerido' : null,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final residenciasState = ref.watch(residenciasListProvider);
+            return AlertDialog(
+              title: const Text('Generar Cuota Mensual'),
+              content: Form(
+                key: formKey,
+                child: SafeArea(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.5,
+                    ),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          residenciasState.when(
+                            data: (residencias) => DropdownButtonFormField<int>(
+                              value: selectedResidenciaId,
+                              decoration: const InputDecoration(labelText: 'Residencia'),
+                              isExpanded: true,
+                              items: residencias.map((r) => DropdownMenuItem(
+                                value: r.idResidencia,
+                                child: Text(r.codigoCasa, overflow: TextOverflow.ellipsis),
+                              )).toList(),
+                              onChanged: (v) => setState(() => selectedResidenciaId = v),
+                              validator: (v) => v == null ? 'Seleccione una residencia' : null,
+                            ),
+                            loading: () => const CircularProgressIndicator(),
+                            error: (e, _) => const Text('Error cargando residencias'),
+                          ),
+                          const SizedBox(height: 16),
+                          DropdownButtonFormField<int>(
+                            value: selectedMes,
+                            decoration: const InputDecoration(labelText: 'Mes'),
+                            items: List.generate(12, (i) => i + 1).map((m) => DropdownMenuItem(
+                              value: m,
+                              child: Text('Mes $m'),
+                            )).toList(),
+                            onChanged: (v) => setState(() => selectedMes = v!),
+                          ),
+                          const SizedBox(height: 16),
+                          DropdownButtonFormField<int>(
+                            value: selectedAnio,
+                            decoration: const InputDecoration(labelText: 'Año'),
+                            items: const [
+                              DropdownMenuItem(value: 2025, child: Text('2025')),
+                              DropdownMenuItem(value: 2026, child: Text('2026')),
+                            ],
+                            onChanged: (v) => setState(() => selectedAnio = v!),
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: valorCtrl,
+                            decoration: const InputDecoration(labelText: 'Valor Cuota (\$)'),
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            validator: (v) {
+                              if (v!.isEmpty) return 'Requerido';
+                              final val = double.tryParse(v);
+                              if (val == null || val <= 0) return 'Debe ser mayor que 0';
+                              return null;
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
-              const SizedBox(height: 16),
-              const Text('Nota: En producción se seleccionaría el Residente de una lista desplegable.', style: TextStyle(fontSize: 12, color: Colors.grey)),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
-          ElevatedButton(
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                final monto = double.tryParse(_montoCtrl.text) ?? 0.0;
-                final p = Pago(
-                  id: 0,
-                  monto: monto,
-                  fecha: DateTime.now().toIso8601String(),
-                  estado: 'APROBADO',
-                );
-                ref.read(pagosListProvider.notifier).registrarPago(p);
-                Navigator.pop(ctx);
-              }
-            },
-            child: const Text('Registrar'),
-          )
-        ],
-      ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+                ElevatedButton(
+                  onPressed: () {
+                    if (formKey.currentState!.validate()) {
+                      final cuota = Cuota(
+                        idCuota: 0,
+                        idResidencia: selectedResidenciaId!,
+                        codigoCasa: '',
+                        mes: selectedMes,
+                        anio: selectedAnio,
+                        valor: double.parse(valorCtrl.text),
+                        montoPagado: 0,
+                        saldoPendiente: 0,
+                      );
+                      ref.read(cuotasListProvider.notifier).generarCuota(cuota);
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cuota generada exitosamente.')));
+                    }
+                  },
+                  child: const Text('Generar'),
+                )
+              ],
+            );
+          }
+        );
+      },
     );
-  }
-
-  void _consultarDeuda(BuildContext context, WidgetRef ref) async {
-    // Demo ID for consulting debt
-    const demoResidenteId = 1;
-    try {
-      final deuda = await ref.read(pagosListProvider.notifier).consultarDeuda(demoResidenteId);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Deuda del residente (ID: $demoResidenteId): \$${deuda.toStringAsFixed(2)}')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al consultar deuda: $e')),
-      );
-    }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(pagosListProvider);
-
+    final state = ref.watch(cuotasListProvider);
+    
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pagos'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            tooltip: 'Consultar Deuda (Demo)',
-            onPressed: () => _consultarDeuda(context, ref),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Gestión de Cuotas')),
       drawer: const AppDrawer(),
       body: state.when(
-        data: (list) => RefreshIndicator(
-          onRefresh: () => ref.read(pagosListProvider.notifier).fetchPagos(),
-          child: ListView.builder(
-            itemCount: list.length,
-            itemBuilder: (context, index) {
-              final p = list[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: p.estado == 'APROBADO' ? Colors.green : Colors.orange,
-                    child: const Icon(Icons.attach_money, color: Colors.white),
+        data: (list) {
+          if (list.isEmpty) return const Center(child: Text('No hay cuotas.'));
+          return RefreshIndicator(
+            onRefresh: () => ref.read(cuotasListProvider.notifier).fetchCuotas(),
+            child: ListView.builder(
+              itemCount: list.length,
+              itemBuilder: (context, index) {
+                final c = list[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      backgroundColor: Colors.blue,
+                      child: Icon(Icons.receipt, color: Colors.white),
+                    ),
+                    title: Text('Casa: ${c.codigoCasa} - Mes: ${c.mes}/${c.anio}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text('Valor: \$${c.valor.toStringAsFixed(2)} | Pagado: \$${c.montoPagado.toStringAsFixed(2)}'),
+                    trailing: Text('Saldo: \$${c.saldoPendiente.toStringAsFixed(2)}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                   ),
-                  title: Text('\$${p.monto.toStringAsFixed(2)}'),
-                  subtitle: Text('Fecha: ${p.fecha.split('T').first}'),
-                  trailing: Text(p.estado, style: TextStyle(
-                    color: p.estado == 'APROBADO' ? Colors.green : Colors.orange,
-                    fontWeight: FontWeight.bold,
-                  )),
-                ),
-              );
-            },
-          ),
-        ),
+                );
+              },
+            ),
+          );
+        },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showForm(context, ref),
+        heroTag: 'fab_cuotas',
+        onPressed: () {
+          ref.read(residenciasListProvider.notifier).fetchResidencias();
+          _showCuotaForm(context, ref);
+        },
         child: const Icon(Icons.add),
       ),
     );
