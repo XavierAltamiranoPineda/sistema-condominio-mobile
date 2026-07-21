@@ -13,7 +13,7 @@ class PagosPage extends ConsumerWidget {
     final valorCtrl = TextEditingController();
     int? selectedResidenciaId;
     int selectedMes = DateTime.now().month;
-    int selectedAnio = DateTime.now().year < 2025 ? 2025 : (DateTime.now().year > 2026 ? 2026 : DateTime.now().year);
+    int selectedAnio = DateTime.now().year < 2026 ? 2026 : DateTime.now().year;
 
     showDialog(
       context: context,
@@ -63,10 +63,10 @@ class PagosPage extends ConsumerWidget {
                           DropdownButtonFormField<int>(
                             value: selectedAnio,
                             decoration: const InputDecoration(labelText: 'Año'),
-                            items: const [
-                              DropdownMenuItem(value: 2025, child: Text('2025')),
-                              DropdownMenuItem(value: 2026, child: Text('2026')),
-                            ],
+                            items: List.generate(10, (i) => 2026 + i).map((y) => DropdownMenuItem(
+                              value: y,
+                              child: Text(y.toString()),
+                            )).toList(),
                             onChanged: (v) => setState(() => selectedAnio = v!),
                           ),
                           const SizedBox(height: 16),

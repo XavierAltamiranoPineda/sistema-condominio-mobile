@@ -148,7 +148,7 @@ class ResidentesPage extends ConsumerWidget {
                           children: [
                             IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: () => _showForm(context, ref, r)),
                             IconButton(
-                              icon: Icon(r.estado == 'ACTIVO' ? Icons.block : Icons.check_circle, color: r.estado == 'ACTIVO' ? Colors.red : Colors.green),
+                              icon: Icon(r.estado == 'ACTIVO' ? Icons.check_circle : Icons.block, color: r.estado == 'ACTIVO' ? Colors.green : Colors.red),
                               tooltip: r.estado == 'ACTIVO' ? 'Desactivar' : 'Activar',
                               onPressed: () => ref.read(residentesListProvider.notifier).toggleEstado(r.idResidente, r.estado),
                             ),

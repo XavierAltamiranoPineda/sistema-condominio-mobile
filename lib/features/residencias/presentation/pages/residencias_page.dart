@@ -20,99 +20,103 @@ class ResidenciasPage extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            final residentesState = ref.watch(residentesListProvider);
-            
-            return AlertDialog(
-              title: Text(residencia == null ? 'Nueva Residencia' : 'Editar Residencia'),
-              content: Form(
-                key: formKey,
-                child: SafeArea(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxHeight: MediaQuery.of(context).size.height * 0.5,
-                    ),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TextFormField(
-                            controller: codigoCtrl,
-                            decoration: const InputDecoration(labelText: 'Código (Ej. A-101)'),
-                            validator: (v) => v!.isEmpty ? 'Requerido' : null,
+        return Consumer(
+          builder: (context, ref, child) {
+            return StatefulBuilder(
+              builder: (context, setState) {
+                final residentesState = ref.watch(residentesListProvider);
+                
+                return AlertDialog(
+                  title: Text(residencia == null ? 'Nueva Residencia' : 'Editar Residencia'),
+                  content: Form(
+                    key: formKey,
+                    child: SafeArea(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxHeight: MediaQuery.of(context).size.height * 0.5,
+                        ),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextFormField(
+                                controller: codigoCtrl,
+                                decoration: const InputDecoration(labelText: 'Código (Ej. A-101)'),
+                                validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: cuotaCtrl,
+                                decoration: const InputDecoration(labelText: 'Cuota Mensual'),
+                                keyboardType: TextInputType.number,
+                                validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                              ),
+                              const SizedBox(height: 16),
+                              residentesState.when(
+                                data: (residentes) => DropdownButtonFormField<int>(
+                                  value: selectedPropietarioId,
+                                  decoration: const InputDecoration(labelText: 'Propietario (Residente)'),
+                                  isExpanded: true,
+                                  items: residentes.map((r) => DropdownMenuItem(
+                                    value: r.idResidente,
+                                    child: Text('${r.nombres} ${r.apellidos} ${r.estado == 'INACTIVO' ? '(Inactivo)' : ''}', overflow: TextOverflow.ellipsis),
+                                  )).toList(),
+                                  onChanged: (v) {
+                                    final res = residentes.firstWhere((r) => r.idResidente == v);
+                                    if (res.estado == 'INACTIVO') {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('El residente seleccionado está inactivo y no puede ser propietario de una residencia')),
+                                      );
+                                      setState(() {
+                                        selectedPropietarioId = null;
+                                      });
+                                    } else {
+                                      setState(() {
+                                        selectedPropietarioId = v;
+                                      });
+                                    }
+                                  },
+                                  validator: (v) => v == null ? 'Seleccione un propietario' : null,
+                                ),
+                                loading: () => const CircularProgressIndicator(),
+                                error: (e, _) => const Text('Error al cargar propietarios'),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: cuotaCtrl,
-                            decoration: const InputDecoration(labelText: 'Cuota Mensual'),
-                            keyboardType: TextInputType.number,
-                            validator: (v) => v!.isEmpty ? 'Requerido' : null,
-                          ),
-                          const SizedBox(height: 16),
-                          residentesState.when(
-                            data: (residentes) => DropdownButtonFormField<int>(
-                              value: selectedPropietarioId,
-                              decoration: const InputDecoration(labelText: 'Propietario (Residente)'),
-                              isExpanded: true,
-                              items: residentes.map((r) => DropdownMenuItem(
-                                value: r.idResidente,
-                                child: Text('${r.nombres} ${r.apellidos} ${r.estado == 'INACTIVO' ? '(Inactivo)' : ''}', overflow: TextOverflow.ellipsis),
-                              )).toList(),
-                              onChanged: (v) {
-                                final res = residentes.firstWhere((r) => r.idResidente == v);
-                                if (res.estado == 'INACTIVO') {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('El residente seleccionado está inactivo y no puede ser propietario de una residencia')),
-                                  );
-                                  setState(() {
-                                    selectedPropietarioId = null;
-                                  });
-                                } else {
-                                  setState(() {
-                                    selectedPropietarioId = v;
-                                  });
-                                }
-                              },
-                              validator: (v) => v == null ? 'Seleccione un propietario' : null,
-                            ),
-                            loading: () => const CircularProgressIndicator(),
-                            error: (e, _) => const Text('Error al cargar propietarios'),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-              actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
-                ElevatedButton(
-                  onPressed: () {
-                    if (formKey.currentState!.validate()) {
-                      if (selectedPropietarioId == null) {
-                        return; // just in case
-                      }
-                      final r = Residencia(
-                        idResidencia: residencia?.idResidencia ?? 0,
-                        codigoCasa: codigoCtrl.text,
-                        idPropietario: selectedPropietarioId!,
-                        nombrePropietario: '', // will be ignored/resolved by backend
-                        cuotaMensual: double.tryParse(cuotaCtrl.text) ?? 0.0,
-                        estado: residencia?.estado ?? 'DESOCUPADA',
-                        createdAt: residencia?.createdAt ?? '',
-                      );
-                      if (residencia == null) {
-                        ref.read(residenciasListProvider.notifier).addResidencia(r);
-                      } else {
-                        ref.read(residenciasListProvider.notifier).editResidencia(r.idResidencia, r);
-                      }
-                      Navigator.pop(ctx);
-                    }
-                  },
-                  child: const Text('Guardar'),
-                )
-              ],
+                  actions: [
+                    TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (formKey.currentState!.validate()) {
+                          if (selectedPropietarioId == null) {
+                            return; // just in case
+                          }
+                          final r = Residencia(
+                            idResidencia: residencia?.idResidencia ?? 0,
+                            codigoCasa: codigoCtrl.text,
+                            idPropietario: selectedPropietarioId!,
+                            nombrePropietario: '', // will be ignored/resolved by backend
+                            cuotaMensual: double.tryParse(cuotaCtrl.text) ?? 0.0,
+                            estado: residencia?.estado ?? 'DESOCUPADA',
+                            createdAt: residencia?.createdAt ?? '',
+                          );
+                          if (residencia == null) {
+                            ref.read(residenciasListProvider.notifier).addResidencia(r);
+                          } else {
+                            ref.read(residenciasListProvider.notifier).editResidencia(r.idResidencia, r);
+                          }
+                          Navigator.pop(ctx);
+                        }
+                      },
+                      child: const Text('Guardar'),
+                    )
+                  ],
+                );
+              }
             );
           }
         );

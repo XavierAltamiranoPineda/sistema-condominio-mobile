@@ -21,134 +21,144 @@ class ComunicadosPage extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            final residentesState = ref.watch(residentesListProvider);
-            return AlertDialog(
-              title: Text(comunicado == null ? 'Nuevo Comunicado' : 'Editar Comunicado'),
-              content: Form(
-                key: formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextFormField(
-                        controller: tituloCtrl,
-                        decoration: const InputDecoration(labelText: 'Título'),
-                        validator: (v) => v!.isEmpty ? 'Requerido' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: mensajeCtrl,
-                        decoration: const InputDecoration(labelText: 'Mensaje'),
-                        maxLines: 3,
-                        validator: (v) => v!.isEmpty ? 'Requerido' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      DropdownButtonFormField<String>(
-                        value: prioridad,
-                        decoration: const InputDecoration(labelText: 'Prioridad'),
-                        items: const [
-                          DropdownMenuItem(value: 'ALTA', child: Text('ALTA')),
-                          DropdownMenuItem(value: 'NORMAL', child: Text('NORMAL')),
-                          DropdownMenuItem(value: 'BAJA', child: Text('BAJA')),
-                        ],
-                        onChanged: (v) => setState(() => prioridad = v!),
-                        validator: (v) => v == null ? 'Requerido' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: fechaVencCtrl,
-                        decoration: const InputDecoration(labelText: 'Fecha Vencimiento (YYYY-MM-DD) (Opcional)'),
-                      ),
-                      const SizedBox(height: 16),
-                      DropdownButtonFormField<String>(
-                        value: tipo,
-                        decoration: const InputDecoration(labelText: 'Tipo de Comunicado'),
-                        items: const [
-                          DropdownMenuItem(value: 'GENERAL', child: Text('GENERAL')),
-                          DropdownMenuItem(value: 'INDIVIDUAL', child: Text('INDIVIDUAL')),
-                        ],
-                        onChanged: (v) => setState(() {
-                          tipo = v!;
-                          if (tipo == 'GENERAL') {
-                            selectedDestinatarios.clear();
-                          }
-                        }),
-                      ),
-                      if (tipo == 'INDIVIDUAL') ...[
-                        const SizedBox(height: 16),
-                        const Text('Seleccionar Destinatarios:', style: TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        Container(
-                          height: 150,
-                          decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
-                          child: residentesState.when(
-                            data: (residentes) {
-                              if (residentes.isEmpty) return const Center(child: Text('No hay residentes'));
-                              return ListView.builder(
-                                shrinkWrap: true,
-                                itemCount: residentes.length,
-                                itemBuilder: (context, index) {
-                                  final r = residentes[index];
-                                  final isSelected = selectedDestinatarios.contains(r.idResidente);
-                                  return CheckboxListTile(
-                                    title: Text('${r.nombres} ${r.apellidos}'),
-                                    value: isSelected,
-                                    onChanged: (val) {
-                                      setState(() {
-                                        if (val == true) {
-                                          selectedDestinatarios.add(r.idResidente);
-                                        } else {
-                                          selectedDestinatarios.remove(r.idResidente);
-                                        }
-                                      });
+        return Consumer(
+          builder: (context, ref, child) {
+            return StatefulBuilder(
+              builder: (context, setState) {
+                final residentesState = ref.watch(residentesListProvider);
+                return AlertDialog(
+                  title: Text(comunicado == null ? 'Nuevo Comunicado' : 'Editar Comunicado'),
+                  content: Form(
+                    key: formKey,
+                    child: SafeArea(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxHeight: MediaQuery.of(context).size.height * 0.5,
+                        ),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextFormField(
+                                controller: tituloCtrl,
+                                decoration: const InputDecoration(labelText: 'Título'),
+                                validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: mensajeCtrl,
+                                decoration: const InputDecoration(labelText: 'Mensaje'),
+                                maxLines: 3,
+                                validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                              ),
+                              const SizedBox(height: 16),
+                              DropdownButtonFormField<String>(
+                                value: prioridad,
+                                decoration: const InputDecoration(labelText: 'Prioridad'),
+                                items: const [
+                                  DropdownMenuItem(value: 'ALTA', child: Text('ALTA')),
+                                  DropdownMenuItem(value: 'NORMAL', child: Text('NORMAL')),
+                                  DropdownMenuItem(value: 'BAJA', child: Text('BAJA')),
+                                ],
+                                onChanged: (v) => setState(() => prioridad = v!),
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: fechaVencCtrl,
+                                decoration: const InputDecoration(labelText: 'Fecha Vencimiento (YYYY-MM-DD) (Opcional)'),
+                              ),
+                              const SizedBox(height: 16),
+                              DropdownButtonFormField<String>(
+                                value: tipo,
+                                decoration: const InputDecoration(labelText: 'Tipo de Comunicado'),
+                                items: const [
+                                  DropdownMenuItem(value: 'GENERAL', child: Text('GENERAL')),
+                                  DropdownMenuItem(value: 'INDIVIDUAL', child: Text('INDIVIDUAL')),
+                                ],
+                                onChanged: (v) => setState(() {
+                                  tipo = v!;
+                                  if (tipo == 'GENERAL') {
+                                    selectedDestinatarios.clear();
+                                  }
+                                }),
+                              ),
+                              if (tipo == 'INDIVIDUAL') ...[
+                                const SizedBox(height: 16),
+                                const Text('Seleccionar Destinatarios:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 8),
+                                Container(
+                                  height: 150,
+                                  decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
+                                  child: residentesState.when(
+                                    data: (residentes) {
+                                      if (residentes.isEmpty) return const Center(child: Text('No hay residentes'));
+                                      return ListView.builder(
+                                        shrinkWrap: true,
+                                        itemCount: residentes.length,
+                                        itemBuilder: (context, index) {
+                                          final r = residentes[index];
+                                          final isSelected = selectedDestinatarios.contains(r.idResidente);
+                                          return CheckboxListTile(
+                                            title: Text('${r.nombres} ${r.apellidos}'),
+                                            value: isSelected,
+                                            onChanged: (val) {
+                                              setState(() {
+                                                if (val == true) {
+                                                  selectedDestinatarios.add(r.idResidente);
+                                                } else {
+                                                  selectedDestinatarios.remove(r.idResidente);
+                                                }
+                                              });
+                                            },
+                                          );
+                                        },
+                                      );
                                     },
-                                  );
-                                },
-                              );
-                            },
-                            loading: () => const Center(child: CircularProgressIndicator()),
-                            error: (e, _) => const Center(child: Text('Error al cargar')),
+                                    loading: () => const Center(child: CircularProgressIndicator()),
+                                    error: (e, _) => const Center(child: Text('Error al cargar')),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
-                      ],
-                    ],
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
-                ElevatedButton(
-                  onPressed: () {
-                    if (formKey.currentState!.validate()) {
-                      if (tipo == 'INDIVIDUAL' && selectedDestinatarios.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Debe seleccionar al menos un destinatario.')));
-                        return;
-                      }
-                      
-                      final c = Comunicado(
-                        idComunicado: comunicado?.idComunicado ?? 0,
-                        titulo: tituloCtrl.text,
-                        mensaje: mensajeCtrl.text,
-                        prioridad: prioridad,
-                        fechaVencimiento: fechaVencCtrl.text.isEmpty ? null : fechaVencCtrl.text,
-                        createdAt: comunicado?.createdAt ?? DateTime.now().toIso8601String(),
-                        destinatarios: tipo == 'INDIVIDUAL' ? selectedDestinatarios : null,
-                      );
-                      if (comunicado == null) {
-                        ref.read(comunicadosListProvider.notifier).addComunicado(c);
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Comunicado creado exitosamente.')));
-                      } else {
-                        ref.read(comunicadosListProvider.notifier).editComunicado(c.idComunicado, c);
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Comunicado editado exitosamente.')));
-                      }
-                      Navigator.pop(ctx);
-                    }
-                  },
-                  child: const Text('Guardar'),
-                )
-              ],
+                  actions: [
+                    TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (formKey.currentState!.validate()) {
+                          if (tipo == 'INDIVIDUAL' && selectedDestinatarios.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Debe seleccionar al menos un destinatario.')));
+                            return;
+                          }
+                          
+                          final c = Comunicado(
+                            idComunicado: comunicado?.idComunicado ?? 0,
+                            titulo: tituloCtrl.text,
+                            mensaje: mensajeCtrl.text,
+                            prioridad: prioridad,
+                            fechaVencimiento: fechaVencCtrl.text.isEmpty ? null : fechaVencCtrl.text,
+                            createdAt: comunicado?.createdAt ?? DateTime.now().toIso8601String(),
+                            destinatarios: tipo == 'INDIVIDUAL' ? selectedDestinatarios : null,
+                          );
+                          if (comunicado == null) {
+                            ref.read(comunicadosListProvider.notifier).addComunicado(c);
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Comunicado creado exitosamente.')));
+                          } else {
+                            ref.read(comunicadosListProvider.notifier).editComunicado(c.idComunicado, c);
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Comunicado editado exitosamente.')));
+                          }
+                          Navigator.pop(ctx);
+                        }
+                      },
+                      child: const Text('Guardar'),
+                    )
+                  ],
+                );
+              }
             );
           }
         );
@@ -216,10 +226,6 @@ class ComunicadosPage extends ConsumerWidget {
                           ),
                         ],
                       ),
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.blue),
-                      onPressed: () => _showForm(context, ref, c),
                     ),
                   ),
                 );
